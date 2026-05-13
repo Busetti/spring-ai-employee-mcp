@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Employee AI Assistant</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      height: 92vh;
+      display: flex;
+      flex-direction: column;
+      background: #1e293b;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+
+    /* Header */
+    .header {
+      padding: 18px 24px;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #334155;
+    }
+    .header-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .header-text h1 { font-size: 17px; font-weight: 600; color: #f1f5f9; }
+    .header-text p  { font-size: 12px; color: #64748b; }
+    .status-dot {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #64748b;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+
+    /* Suggestions */
+    .suggestions {
+      padding: 12px 20px;
+      display: flex; gap: 8px; flex-wrap: wrap;
+      border-bottom: 1px solid #1e293b;
+      background: #0f172a;
+    }
+    .chip {
+      padding: 6px 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .chip:hover { background: #334155; color: #e2e8f0; border-color: #6366f1; }
+
+    /* Messages */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    /* Message bubbles */
+    .msg { display: flex; gap: 10px; align-items: flex-start; max-width: 100%; }
+    .msg.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .msg.ai   .avatar { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .msg.user .avatar { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: calc(100% - 50px);
+      word-break: break-word;
+    }
+    .msg.ai   .bubble {
+      background: #273449;
+      border-bottom-left-radius: 4px;
+      color: #e2e8f0;
+    }
+    .msg.user .bubble {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-bottom-right-radius: 4px;
+      color: #fff;
+    }
+
+    /* Typing indicator */
+    .typing .bubble { display: flex; gap: 4px; align-items: center; padding: 14px 16px; }
+    .typing-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #6366f1;
+      animation: bounce 1.2s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,60%,100% { transform:translateY(0) } 30% { transform:translateY(-6px) } }
+
+    /* Input area */
+    .input-area {
+      padding: 16px 20px;
+      background: #0f172a;
+      border-top: 1px solid #334155;
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+    textarea {
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      color: #e2e8f0;
+      font-size: 14px;
+      font-family: inherit;
+      padding: 12px 16px;
+      resize: none;
+      outline: none;
+      max-height: 120px;
+      min-height: 46px;
+      line-height: 1.5;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: #6366f1; }
+    textarea::placeholder { color: #475569; }
+
+    .send-btn {
+      width: 46px; height: 46px; flex-shrink: 0;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none; border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.2s, transform 0.1s;
+      color: white; font-size: 18px;
+    }
+    .send-btn:hover { opacity: 0.9; }
+    .send-btn:active { transform: scale(0.95); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; color: #475569; text-align: center;
+      padding: 40px;
+    }
+    .empty-state .icon { font-size: 48px; }
+    .empty-state h2 { font-size: 18px; color: #64748b; font-weight: 500; }
+    .empty-state p { font-size: 13px; line-height: 1.6; }
+
+    /* Pre-formatted response text */
+    .bubble pre {
+      background: #0f172a; padding: 10px 14px;
+      border-radius: 8px; font-size: 13px;
+      overflow-x: auto; margin-top: 8px;
+      border-left: 3px solid #6366f1;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">🤖</div>
+    <div class="header-text">
+      <h1>Employee AI Assistant</h1>
+      <p>Powered by Ollama llama3.2 · Connected to MCP Server</p>
+    </div>
+    <div class="status-dot"><div class="dot"></div> Live</div>
+  </div>
+
+  <!-- Quick prompts -->
+  <div class="suggestions">
+    <span class="chip" onclick="sendChip(this)">👥 List all employees</span>
+    <span class="chip" onclick="sendChip(this)">💰 Who earns the most?</span>
+    <span class="chip" onclick="sendChip(this)">🏢 Engineering team</span>
+    <span class="chip" onclick="sendChip(this)">📊 Average salary by department</span>
+    <span class="chip" onclick="sendChip(this)">🔍 Find Alice Johnson</span>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages" id="messages">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">💬</div>
+      <h2>Ask anything about employees</h2>
+      <p>I can look up employees, filter by department or role,<br>create, update, or delete records — all via natural language.</p>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <textarea id="input" rows="1" placeholder="Ask about employees…"
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">&#9658;</button>
+  </div>
+
+</div>
+
+<script>
+  const messagesEl = document.getElementById('messages');
+  const inputEl    = document.getElementById('input');
+  const sendBtn    = document.getElementById('sendBtn');
+  const emptyState = document.getElementById('emptyState');
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function sendChip(el) {
+    inputEl.value = el.textContent.replace(/^[^\s]+\s/, '');
+    sendMessage();
+  }
+
+  function appendMessage(role, text) {
+    emptyState && emptyState.remove();
+    const isUser = role === 'user';
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = isUser ? '🧑' : '🤖';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    if (!isUser) {
+      bubble.innerHTML = formatResponse(text);
+    } else {
+      bubble.textContent = text;
+    }
+
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  function formatResponse(text) {
+    return text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code style="background:#0f172a;padding:2px 6px;border-radius:4px;font-size:13px">$1</code>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'msg ai typing';
+    div.id = 'typing';
+    div.innerHTML = `<div class="avatar">🤖</div>
+      <div class="bubble">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>`;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeTyping() {
+    document.getElementById('typing')?.remove();
+  }
+
+  async function sendMessage() {
+    const message = inputEl.value.trim();
+    if (!message) return;
+
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    appendMessage('user', message);
+    showTyping();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Server error ${res.status}: ${err}`);
+      }
+
+      const data = await res.json();
+      removeTyping();
+      appendMessage('ai', data.response || 'No response received.');
+    } catch (err) {
+      removeTyping();
+      appendMessage('ai', '⚠️ Error: ' + err.message);
+    } finally {
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+</script>
+</body>
+</html>

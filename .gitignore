@@ -1,0 +1,17 @@
+# Maven
+target/
+*.class
+*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Spring Boot
+application-local.properties
+application-local.yml
+
+# OS
+.DS_Store
+Thumbs.db
