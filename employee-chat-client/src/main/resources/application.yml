@@ -10,7 +10,9 @@ spring:
       base-url: http://localhost:11434
       chat:
         options:
-          model: llama3.2:1b
+          model: qwen2.5:3b
+          num_ctx: 4096
+          num_thread: 8
 
     mcp:
       client:

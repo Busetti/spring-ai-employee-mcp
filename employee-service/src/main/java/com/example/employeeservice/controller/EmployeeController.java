@@ -1,5 +1,6 @@
 package com.example.employeeservice.controller;
 
+import com.example.employeeservice.model.Address;
 import com.example.employeeservice.model.Employee;
 import com.example.employeeservice.service.EmployeeService;
 import org.springframework.http.HttpStatus;
@@ -56,6 +57,13 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
         return employeeService.updateEmployee(id, employee)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/address")
+    public ResponseEntity<Address> getEmployeeAddress(@PathVariable Long id) {
+        return employeeService.getEmployeeAddress(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

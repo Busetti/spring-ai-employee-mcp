@@ -1,5 +1,6 @@
 package com.example.employeeservice.service;
 
+import com.example.employeeservice.model.Address;
 import com.example.employeeservice.model.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
@@ -54,5 +55,10 @@ public class EmployeeService {
             return true;
         }
         return false;
+    }
+
+    public Optional<Address> getEmployeeAddress(Long id) {
+        return employeeRepository.findById(id)
+                .map(Employee::getAddress);
     }
 }

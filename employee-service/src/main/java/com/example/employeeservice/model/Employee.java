@@ -1,5 +1,6 @@
 package com.example.employeeservice.model;
 
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,6 +21,9 @@ public class Employee {
     private String department;
     private String role;
     private double salary;
+
+    @Embedded
+    private Address address;
 
     public Employee() {}
 
@@ -54,4 +58,7 @@ public class Employee {
 
     public double getSalary() { return salary; }
     public void setSalary(double salary) { this.salary = salary; }
+
+    public Address getAddress() { return address; }
+    public void setAddress(Address address) { this.address = address; }
 }

@@ -3,6 +3,7 @@ package com.example.chatclient.controller;
 import com.example.chatclient.service.ChatService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -15,15 +16,17 @@ public class ChatController {
         this.chatService = chatService;
     }
 
-    @PostMapping
-    public Map<String, String> chat(@RequestBody Map<String, String> request) {
-        String response = chatService.chat(request.get("message"));
-        return Map.of("response", response);
+    @GetMapping("/tools")
+    public List<Map<String, String>> listTools() {
+        return chatService.listTools();
     }
 
-    @GetMapping
-    public Map<String, String> chat(@RequestParam String message) {
-        String response = chatService.chat(message);
+    @PostMapping
+    @SuppressWarnings("unchecked")
+    public Map<String, String> chat(@RequestBody Map<String, Object> request) {
+        String message = (String) request.get("message");
+        List<String> toolNames = (List<String>) request.get("toolNames");
+        String response = chatService.chat(message, toolNames);
         return Map.of("response", response);
     }
 }
