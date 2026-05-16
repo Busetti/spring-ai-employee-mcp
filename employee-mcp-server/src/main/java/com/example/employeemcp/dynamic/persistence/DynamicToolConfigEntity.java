@@ -36,11 +36,14 @@ public class DynamicToolConfigEntity {
     @Column(nullable = false)
     private Instant registeredAt;
 
+    @Column(length = 4000)
+    private String systemPrompt;
+
     protected DynamicToolConfigEntity() {}
 
     public DynamicToolConfigEntity(String name, String description, String method, String url,
                                     String headersJson, String requestBodyTemplate,
-                                    int timeoutSeconds, Instant registeredAt) {
+                                    int timeoutSeconds, Instant registeredAt, String systemPrompt) {
         this.name = name;
         this.description = description;
         this.method = method;
@@ -49,6 +52,7 @@ public class DynamicToolConfigEntity {
         this.requestBodyTemplate = requestBodyTemplate;
         this.timeoutSeconds = timeoutSeconds;
         this.registeredAt = registeredAt;
+        this.systemPrompt = systemPrompt;
     }
 
     public String getName() { return name; }
@@ -59,4 +63,5 @@ public class DynamicToolConfigEntity {
     public String getRequestBodyTemplate() { return requestBodyTemplate; }
     public int getTimeoutSeconds() { return timeoutSeconds; }
     public Instant getRegisteredAt() { return registeredAt; }
+    public String getSystemPrompt() { return systemPrompt; }
 }

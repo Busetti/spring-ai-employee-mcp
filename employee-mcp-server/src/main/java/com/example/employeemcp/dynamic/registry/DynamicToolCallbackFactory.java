@@ -33,9 +33,12 @@ public class DynamicToolCallbackFactory {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public ToolCallback build(ToolRegistrationRequest req) {
+        String fullDescription = (req.getSystemPrompt() != null && !req.getSystemPrompt().isBlank())
+                ? req.getDescription() + "\nInstructions: " + req.getSystemPrompt()
+                : req.getDescription();
         return FunctionToolCallback
                 .builder(req.getName(), (Map args) -> invoke(req, args))
-                .description(req.getDescription())
+                .description(fullDescription)
                 .inputType(Map.class)
                 .inputSchema(buildInputSchema(req))
                 .build();

@@ -113,7 +113,7 @@ public class DynamicToolRegistry {
             repository.save(new DynamicToolConfigEntity(
                     req.getName(), req.getDescription(), req.getMethod(), req.getUrl(),
                     headersJson, req.getRequestBodyTemplate(),
-                    req.getTimeoutSeconds(), registeredAt));
+                    req.getTimeoutSeconds(), registeredAt, req.getSystemPrompt()));
         } catch (Exception ex) {
             log.error("Failed to persist dynamic tool '{}': {}", req.getName(), ex.getMessage(), ex);
         }
@@ -127,6 +127,7 @@ public class DynamicToolRegistry {
         req.setUrl(entity.getUrl());
         req.setRequestBodyTemplate(entity.getRequestBodyTemplate());
         req.setTimeoutSeconds(entity.getTimeoutSeconds());
+        req.setSystemPrompt(entity.getSystemPrompt());
         if (entity.getHeadersJson() != null && !entity.getHeadersJson().isBlank()) {
             req.setHeaders(objectMapper.readValue(
                     entity.getHeadersJson(), new TypeReference<Map<String, String>>() {}));

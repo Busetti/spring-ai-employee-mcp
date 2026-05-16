@@ -29,6 +29,8 @@ public class ToolRegistrationRequest {
 
     private int timeoutSeconds = 10;
 
+    private String systemPrompt;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -49,4 +51,7 @@ public class ToolRegistrationRequest {
 
     public int getTimeoutSeconds() { return timeoutSeconds; }
     public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
+
+    public String getSystemPrompt() { return systemPrompt; }
+    public void setSystemPrompt(String systemPrompt) { this.systemPrompt = systemPrompt; }
 }

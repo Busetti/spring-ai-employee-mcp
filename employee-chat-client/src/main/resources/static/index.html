@@ -22,6 +22,45 @@
       display: flex; flex-direction: column; overflow: hidden;
     }
 
+    /* Sessions panel */
+    .sessions-panel { flex-shrink: 0; border-bottom: 1px solid #1a2740; background: #050c1a; }
+    .sessions-hdr {
+      display: flex; align-items: center; padding: 9px 13px;
+      cursor: pointer; user-select: none; gap: 6px;
+    }
+    .sessions-hdr:hover { background: #0a1628; }
+    .sessions-hdr-title { font-size: 11px; font-weight: 700; color: #64748b;
+      letter-spacing: .1em; text-transform: uppercase; flex: 1; }
+    .sessions-body { max-height: 0; overflow: hidden; transition: max-height .25s ease; }
+    .sessions-body.open { max-height: 220px; overflow-y: auto; }
+    .sessions-body::-webkit-scrollbar { width: 3px; }
+    .sessions-body::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    .session-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 13px; cursor: pointer; transition: background .15s; border-bottom: 1px solid #0d1626;
+    }
+    .session-row:hover { background: #0d1830; }
+    .session-row.active { background: #111a30; border-left: 2px solid #6366f1; }
+    .session-info { flex: 1; min-width: 0; }
+    .session-title { font-size: 12px; color: #94a3b8; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+    .session-row.active .session-title { color: #a5b4fc; }
+    .session-time { font-size: 10px; color: #334155; margin-top: 1px; }
+    .session-actions { display: flex; gap: 3px; flex-shrink: 0; }
+    .sess-btn {
+      width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+      background: transparent; border: none; border-radius: 3px; font-size: 10px;
+      cursor: pointer; color: #334155; transition: all .15s;
+    }
+    .sess-btn:hover { color: #6366f1; background: #0d1626; }
+    .sess-btn.danger:hover { color: #ef4444; background: #1f0808; }
+    .new-session-btn {
+      margin: 8px 13px; padding: 6px 10px; background: transparent;
+      border: 1px dashed #1e293b; border-radius: 7px; color: #475569;
+      font-size: 11px; cursor: pointer; text-align: center; transition: all .15s;
+    }
+    .new-session-btn:hover { border-color: #6366f1; color: #a5b4fc; background: #0d1626; }
+
     .sidebar-header {
       padding: 13px 14px 11px;
       border-bottom: 1px solid #1a2740;
@@ -36,6 +75,15 @@
       color: #475569; font-size: 11px; cursor: pointer; transition: all .15s;
     }
     .icon-btn:hover { border-color: #6366f1; color: #a5b4fc; }
+
+    /* Session indicator in header */
+    .session-indicator {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; color: #475569; margin-left: 8px;
+      background: #0d1626; border: 1px solid #1e293b; border-radius: 10px;
+      padding: 2px 8px; max-width: 180px;
+    }
+    .session-indicator span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* Tool list */
     .tools-list { flex: 1; overflow-y: auto; padding: 6px; min-height: 0; }
@@ -238,6 +286,20 @@
     .bub pre { background:#050c1a; padding:8px 11px; border-radius:6px; font-size:12px;
       overflow-x:auto; margin-top:7px; border-left:2px solid #6366f1; }
     .bub code { background:#050c1a; padding:1px 5px; border-radius:3px; font-size:12px; }
+
+    /* Context bar */
+    .ctx-bar { flex-shrink:0; border-top:1px solid #1a2740; background:#050c1a; }
+    .ctx-hdr { display:flex; align-items:center; padding:7px 16px;
+      cursor:pointer; user-select:none; gap:6px; }
+    .ctx-hdr:hover { background:#0a1628; }
+    .ctx-hdr span:first-child { font-size:11px; color:#475569; flex:1; }
+    .ctx-body { max-height:0; overflow:hidden; transition:max-height .25s ease;
+      padding:0 16px; }
+    .ctx-body.open { max-height:140px; padding:4px 16px 10px; }
+    .ctx-body textarea { width:100%; background:#0d1626; border:1px solid #1e293b;
+      border-radius:6px; color:#e2e8f0; font-size:12px; font-family:inherit;
+      padding:7px 9px; resize:none; outline:none; transition:border-color .15s; }
+    .ctx-body textarea:focus { border-color:#6366f1; }
   </style>
 </head>
 <body>
@@ -245,6 +307,19 @@
 
   <!-- ═══════════ SIDEBAR ═══════════ -->
   <aside class="sidebar">
+
+    <!-- Sessions panel -->
+    <div class="sessions-panel">
+      <div class="sessions-hdr" onclick="toggleSessions()">
+        <span class="sessions-hdr-title">💬 Sessions</span>
+        <span class="icon-btn" id="sessChev" style="border:none;font-size:9px">▾</span>
+      </div>
+      <div class="sessions-body" id="sessionsBody">
+        <div id="sessionsList"><div style="padding:10px 13px;font-size:11px;color:#334155">No sessions yet</div></div>
+        <button class="new-session-btn" onclick="newSession()">＋ New Chat Session</button>
+      </div>
+    </div>
+
     <div class="sidebar-header">
       <span class="sidebar-title">🔧 Tools</span>
       <button class="icon-btn" title="Select all"  onclick="selectAll()">✓</button>
@@ -277,6 +352,10 @@
                  oninput="detectParams()">
           <div class="param-hint" id="paramHint">No path params detected</div>
         </div>
+        <div class="fg">
+          <label>Instructions for AI (optional)</label>
+          <textarea id="rSysPrompt" rows="2" placeholder="e.g. Always include employee name and department in your response. Use numeric IDs only."></textarea>
+        </div>
         <div class="fg-row">
           <label>Timeout</label>
           <input id="rTimeout" type="number" value="10" min="1" max="60">
@@ -297,6 +376,9 @@
         <p>qwen2.5:3b · Ollama · MCP Server</p>
       </div>
       <div class="live"><div class="dot"></div> Live</div>
+      <div class="session-indicator" id="sessionIndicator" style="display:none">
+        <span>💬</span><span id="sessionIndicatorTitle">New Chat</span>
+      </div>
     </header>
 
     <div class="chips">
@@ -318,6 +400,19 @@
 
     <div class="atbar" id="atbar"></div>
 
+    <!-- User context prompt panel -->
+    <div class="ctx-bar" id="ctxBar">
+      <div class="ctx-hdr" onclick="toggleCtx()">
+        <span id="ctxLabel">💬 Add context / prompt instructions</span>
+        <span id="ctxChev" style="font-size:9px;color:#334155">▾</span>
+      </div>
+      <div class="ctx-body" id="ctxBody">
+        <textarea id="ctxInput" rows="2"
+          placeholder="e.g. Focus on Engineering department only. Show salary in INR. Always compare with team average."></textarea>
+        <div style="font-size:10px;color:#334155;margin-top:3px">This context is sent with every message in this session.</div>
+      </div>
+    </div>
+
     <div class="input-area">
       <textarea id="input" rows="1" placeholder="Ask about employees…"
         onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
@@ -328,10 +423,125 @@
 </div>
 <script>
   /* ─── state ─── */
-  let allTools = [], dynNames = new Set(), selTools = new Set(), regOpen = false;
+  let allTools = [], dynNames = new Set(), selTools = new Set(), regOpen = false, ctxOpen = false;
+  let currentSessionId = null, sessionsOpen = false;
 
   /* ─── boot ─── */
   loadAllTools();
+  loadSessions();
+
+  /* ─── sessions ─── */
+  function toggleSessions() {
+    sessionsOpen = !sessionsOpen;
+    document.getElementById('sessionsBody').classList.toggle('open', sessionsOpen);
+    document.getElementById('sessChev').textContent = sessionsOpen ? '▴' : '▾';
+    if (sessionsOpen) loadSessions();
+  }
+
+  async function loadSessions() {
+    try {
+      const sessions = await fetch('/api/chat/sessions').then(r => r.json());
+      renderSessions(sessions);
+    } catch { /* silent */ }
+  }
+
+  function renderSessions(sessions) {
+    const el = document.getElementById('sessionsList');
+    if (!sessions.length) {
+      el.innerHTML = '<div style="padding:10px 13px;font-size:11px;color:#334155">No sessions yet</div>';
+      return;
+    }
+    el.innerHTML = '';
+    sessions.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'session-row' + (s.id === currentSessionId ? ' active' : '');
+      const timeStr = formatRelativeTime(s.lastActiveAt);
+      row.innerHTML = `
+        <div class="session-info">
+          <div class="session-title" title="${esc(s.title)}">${esc(s.title)}</div>
+          <div class="session-time">${timeStr}</div>
+        </div>
+        <div class="session-actions">
+          <button class="sess-btn" title="Clear history" onclick="clearSession(event,'${s.id}')">⟳</button>
+          <button class="sess-btn danger" title="Delete session" onclick="deleteSession(event,'${s.id}')">✕</button>
+        </div>`;
+      row.addEventListener('click', e => { if (!e.target.closest('.sess-btn')) switchSession(s.id, s.title); });
+      el.appendChild(row);
+    });
+  }
+
+  async function newSession() {
+    const data = await fetch('/api/chat/sessions', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}'
+    }).then(r => r.json());
+    currentSessionId = data.sessionId;
+    clearMessages();
+    updateSessionIndicator('New Chat');
+    await loadSessions();
+    if (!sessionsOpen) toggleSessions();
+  }
+
+  async function switchSession(sessionId, title) {
+    currentSessionId = sessionId;
+    clearMessages();
+    updateSessionIndicator(title);
+    try {
+      const history = await fetch(`/api/chat/sessions/${sessionId}/history`).then(r => r.json());
+      history.forEach(msg => {
+        if (msg.role === 'user') addMsg('user', msg.content);
+        else if (msg.role === 'assistant') addMsg('ai', msg.content);
+      });
+    } catch { /* silent */ }
+    await loadSessions();
+  }
+
+  async function clearSession(e, sessionId) {
+    e.stopPropagation();
+    if (!confirm('Clear conversation history for this session?')) return;
+    await fetch(`/api/chat/sessions/${sessionId}/clear`, { method: 'POST' });
+    if (sessionId === currentSessionId) clearMessages();
+    await loadSessions();
+  }
+
+  async function deleteSession(e, sessionId) {
+    e.stopPropagation();
+    if (!confirm('Delete this session?')) return;
+    await fetch(`/api/chat/sessions/${sessionId}`, { method: 'DELETE' });
+    if (sessionId === currentSessionId) {
+      currentSessionId = null;
+      clearMessages();
+      updateSessionIndicator(null);
+    }
+    await loadSessions();
+  }
+
+  function clearMessages() {
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML = `<div class="empty" id="emptyState">
+      <div class="ei">💬</div>
+      <h2>Ask anything about employees</h2>
+      <p>Select tools in the sidebar · Register new GET endpoints · Ask in natural language</p>
+    </div>`;
+  }
+
+  function updateSessionIndicator(title) {
+    const ind = document.getElementById('sessionIndicator');
+    if (title) {
+      ind.style.display = 'flex';
+      document.getElementById('sessionIndicatorTitle').textContent = title;
+    } else {
+      ind.style.display = 'none';
+    }
+  }
+
+  function formatRelativeTime(isoString) {
+    if (!isoString) return '';
+    const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return Math.floor(diff/86400) + 'd ago';
+  }
 
   /* ─── tools ─── */
   async function loadAllTools() {
@@ -391,6 +601,17 @@
     });
   }
 
+  /* ─── context bar ─── */
+  function toggleCtx() {
+    ctxOpen = !ctxOpen;
+    document.getElementById('ctxBody').classList.toggle('open', ctxOpen);
+    document.getElementById('ctxChev').textContent = ctxOpen ? '▴' : '▾';
+    const lbl = document.getElementById('ctxLabel');
+    const val = document.getElementById('ctxInput').value.trim();
+    lbl.textContent = ctxOpen ? '💬 Add context / prompt instructions'
+      : (val ? '💬 Context active: ' + val.slice(0,40) + (val.length>40?'…':'') : '💬 Add context / prompt instructions');
+  }
+
   /* ─── register form ─── */
   function toggleRegForm() {
     regOpen = !regOpen;
@@ -408,11 +629,12 @@
   }
 
   async function registerTool() {
-    const name = document.getElementById('rName').value.trim();
-    const desc = document.getElementById('rDesc').value.trim();
-    const url  = document.getElementById('rUrl').value.trim();
-    const tout = parseInt(document.getElementById('rTimeout').value) || 10;
-    const btn  = document.getElementById('regBtn');
+    const name      = document.getElementById('rName').value.trim();
+    const desc      = document.getElementById('rDesc').value.trim();
+    const url       = document.getElementById('rUrl').value.trim();
+    const sysPrompt = document.getElementById('rSysPrompt').value.trim();
+    const tout      = parseInt(document.getElementById('rTimeout').value) || 10;
+    const btn       = document.getElementById('regBtn');
 
     if (!name || !desc || !url) { setMsg('err','All fields are required'); return; }
     if (!/^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$/.test(name)) { setMsg('err','Name: start with letter, max 64, letters/digits/-/_'); return; }
@@ -420,15 +642,17 @@
 
     btn.disabled = true; setMsg('','Registering…');
     try {
+      const payload = { name, description: desc, method: 'GET', url, timeoutSeconds: tout };
+      if (sysPrompt) payload.systemPrompt = sysPrompt;
       const res  = await fetch('/api/tools/register', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ name, description: desc, method: 'GET', url, timeoutSeconds: tout })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) { setMsg('err', data.error || `Error ${res.status}`); }
       else {
         setMsg('ok', `✓ "${name}" registered`);
-        ['rName','rDesc','rUrl'].forEach(id => document.getElementById(id).value = '');
+        ['rName','rDesc','rUrl','rSysPrompt'].forEach(id => document.getElementById(id).value = '');
         detectParams();
         await loadAllTools();
       }
@@ -488,18 +712,35 @@
     if (!msg) return;
     inp.value=''; inp.style.height='auto';
     document.getElementById('sendBtn').disabled=true;
-    const toolNames = selTools.size>0 ? [...selTools] : null;
+    const toolNames   = selTools.size>0 ? [...selTools] : null;
+    const userContext = document.getElementById('ctxInput').value.trim() || null;
     addMsg('user', msg); showTyping();
     try {
+      const body = {message:msg, toolNames, userContext};
+      if (currentSessionId) body.sessionId = currentSessionId;
       const res = await fetch('/api/chat', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({message:msg, toolNames})
+        body: JSON.stringify(body)
       });
       if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
       const data = await res.json();
+      if (data.sessionId && data.sessionId !== currentSessionId) {
+        currentSessionId = data.sessionId;
+      }
       rmTyping(); addMsg('ai', data.response||'No response.');
+      updateSessionTitle();
+      loadSessions();
     } catch(e) { rmTyping(); addMsg('ai','⚠️ '+e.message); }
     finally { document.getElementById('sendBtn').disabled=false; document.getElementById('input').focus(); }
+  }
+
+  async function updateSessionTitle() {
+    if (!currentSessionId) return;
+    try {
+      const sessions = await fetch('/api/chat/sessions').then(r => r.json());
+      const s = sessions.find(x => x.id === currentSessionId);
+      if (s) updateSessionIndicator(s.title);
+    } catch { /* silent */ }
   }
 </script>
 </body>
